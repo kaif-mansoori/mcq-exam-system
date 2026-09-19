@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>Exam Results</h1></div>
+        {% include "admin_nav.html" %}
+
+        <a href="{{ url_for('admin_export_results') }}" class="btn btn-gold" style="display:inline-block; width:auto; margin-bottom: 15px;">⬇ Export as CSV (opens in Excel)</a>
+
+        {% if results|length == 0 %}
+            <p style="color: var(--slate);">No submissions yet.</p>
+        {% else %}
+        <table class="data-table">
+            <thead>
+                <tr><th>Name</th><th>Roll No</th><th>Auto Marks (Q1-Q5)</th><th>Coding (Q6)</th><th>Total Marks</th><th>Status</th><th>Score %</th><th>Submit Time</th></tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td>{{ r.name }}</td>
+                    <td>{{ r.roll_no }}</td>
+                    <td>{{ r.obtained_marks }}</td>
+                    <td>{{ r.coding_marks if r.coding_marks is not none else "—" }}</td>
+                    <td>{{ r.total_marks }}</td>
+                    <td>
+                        {% if r.coding_graded %}
+                            <span class="final-msg">Final</span>
+                        {% else %}
+                            <span class="pending-msg">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.score if r.coding_graded else "—" }}{{ "%" if r.coding_graded }}</td>
+                    <td>{{ r.submit_time }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

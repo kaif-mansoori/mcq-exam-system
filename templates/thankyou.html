@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Submitted - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Exam Submitted</h1>
+            <p>Bright Education MCQ Exam Portal</p>
+        </div>
+        <div class="result-box">
+            <div class="score-stamp">
+                <div class="score-fraction">✓</div>
+                <div class="score-percent">Received</div>
+            </div>
+            <p>Well done, <strong>{{ student_name }}</strong>!</p>
+            <p style="color: var(--slate); font-size: 14px; margin-top: 8px;">
+                Your answers have been recorded successfully.<br>
+                Your teacher will share the result with you separately.
+            </p>
+            <p style="margin-top: 20px; color: var(--slate); font-size: 13px;">
+                You may close this window now.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

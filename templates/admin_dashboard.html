@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>Admin Dashboard</h1></div>
+        {% include "admin_nav.html" %}
+
+        <div class="stat-cards">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_questions }}</div>
+                <div class="stat-label">Total Questions in Bank</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ total_students }}</div>
+                <div class="stat-label">Exams Submitted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ pending_grading }}</div>
+                <div class="stat-label">Pending Coding Grading</div>
+            </div>
+        </div>
+
+        {% if pending_grading > 0 %}
+        <div class="pending-msg" style="display:block; margin-bottom:16px;">
+            {{ pending_grading }} student(s) are waiting for their coding answers (Q6) to be graded.
+            <a href="{{ url_for('admin_grade_coding_list') }}">Grade now →</a>
+        </div>
+        {% endif %}
+
+        <div class="stat-card" style="text-align: left;">
+            <strong>Currently Active Exam:</strong><br>
+            {% if active_subject %}
+                Subject: <strong>{{ active_subject }}</strong><br>
+                Chapter: <strong>{{ active_chapter }}</strong>
+            {% else %}
+                <span style="color: var(--rule-red);">No exam is active. Go to "Exam Settings" to set one.</span>
+            {% endif %}
+        </div>
+
+        <p style="margin-top: 20px; color: var(--slate); font-size: 13px;">
+            The exam has 6 fixed sections (Q1-Q6). Add questions to each section from "Questions" →
+            "Add New Question". Students who submit coding answers (Q6) won't have a final score
+            until you grade them from "Grade Coding".
+        </p>
+    </div>
+</body>
+</html>

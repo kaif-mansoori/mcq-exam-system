@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Coding Answers - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>Grade Coding Answers (Q6)</h1></div>
+        {% include "admin_nav.html" %}
+
+        <p style="color: var(--slate); font-size: 13px; margin-bottom:16px;">
+            Students below have submitted their exam, but their Section Q6 (coding) answers still need to be graded manually.
+            Their final result stays "Pending" until you grade them.
+        </p>
+
+        <h3 style="margin-bottom:10px;">Pending ({{ pending_students|length }})</h3>
+        {% if pending_students|length == 0 %}
+            <p style="color: var(--slate);">Nothing pending — all caught up!</p>
+        {% else %}
+        <table class="data-table">
+            <thead><tr><th>Name</th><th>Roll No</th><th>Submit Time</th><th>Action</th></tr></thead>
+            <tbody>
+                {% for s in pending_students %}
+                <tr>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.roll_no }}</td>
+                    <td>{{ s.submit_time }}</td>
+                    <td><a href="{{ url_for('admin_grade_coding_student', student_id=s.id) }}" class="btn-small btn-grade">Grade Now</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h3 style="margin: 24px 0 10px;">Recently Graded</h3>
+        {% if graded_students|length == 0 %}
+            <p style="color: var(--slate);">None yet.</p>
+        {% else %}
+        <table class="data-table">
+            <thead><tr><th>Name</th><th>Roll No</th><th>Coding Marks</th><th>Final Score</th></tr></thead>
+            <tbody>
+                {% for s in graded_students %}
+                <tr>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.roll_no }}</td>
+                    <td>{{ s.coding_marks }}</td>
+                    <td>{{ s.score }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

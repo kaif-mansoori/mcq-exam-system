@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam in Progress - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="exam-shell">
+
+        <div class="exam-topbar">
+            <div>
+                <div class="exam-title">Information Technology (IT) Exam</div>
+                <div class="exam-meta">{{ student_name }} ({{ roll_no }}) &nbsp;·&nbsp; Total Marks: {{ total_marks }}</div>
+            </div>
+            <div class="timer-box" id="timer-box" data-duration="{{ duration_seconds }}">
+                <span>Time Left</span>
+                <span id="timer-text">--:--</span>
+            </div>
+        </div>
+
+        <!-- Poora exam EK HI <form> ke andar - Previous/Next sirf
+             JS se dikhana/chhupana karte hai, koi bhi input form se
+             kabhi nikalta nahi, isliye answers hamesha preserve rehte hai. -->
+        <form id="exam-form" action="{{ url_for('submit_exam') }}" method="POST">
+
+            <div class="exam-layout">
+
+                <!-- SIDEBAR: waisa hi hai - section tabs + status dots.
+                     Dot par click karne se ab seedha USI QUESTION par
+                     jump hoga (sirf section change nahi, exact slide bhi). -->
+                <div class="exam-sidebar">
+                    <h4>Sections</h4>
+                    {% for sec in sections %}
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-label {% if loop.first %}active-tab{% endif %}" data-section="{{ sec.key }}" onclick="jumpToSectionFirstQuestion('{{ sec.key }}')">
+                            {{ sec.key }} <span style="font-weight:400; font-size:11px;">({{ sec.questions|length }})</span>
+                        </div>
+                        <div class="sidebar-dots" id="dots-{{ sec.key }}">
+                            {% for q in sec.questions %}
+                                <div class="status-dot" id="dot-{{ q.id }}" onclick="jumpToQuestion({{ q.id }})">{{ loop.index }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- MAIN AREA -->
+                <div class="exam-main">
+                    {% for sec in sections %}
+                    <div class="section-panel {% if loop.first %}active-panel{% endif %}" id="panel-{{ sec.key }}">
+
+                        <div class="section-instructions">
+                            <strong>{{ sec.title }}</strong><br>{{ sec.instructions }}
+                        </div>
+
+                        <!-- HAR QUESTION APNI ALAG "SLIDE" ME HAI - ek
+                             waqt me sirf EK slide dikhti hai (CSS:
+                             .question-slide { display:none } , .active-slide { display:block }) -->
+                        {% for q in sec.questions %}
+                        <div class="question-slide {% if loop.first %}active-slide{% endif %}" id="slide-{{ q.id }}" data-section="{{ sec.key }}">
+                            <div class="question-card">
+                                <div class="question-number">Question {{ loop.index }} of {{ sec.questions|length }} &nbsp;·&nbsp; {{ q.marks }} mark{{ "s" if q.marks > 1 else "" }}</div>
+                                <div class="question-text">{{ q.text }}</div>
+
+                                {% if sec.type in ["single_select", "true_false"] %}
+                                    {% for opt_label, opt_text in q.options %}
+                                    <label class="option-row">
+                                        <input type="radio" name="q_{{ q.id }}" value="{{ opt_label }}" data-qid="{{ q.id }}" onchange="markAnswered({{ q.id }})">
+                                        {{ opt_label }}. {{ opt_text }}
+                                    </label>
+                                    {% endfor %}
+
+                                {% elif sec.type == "multi_select" %}
+                                    <p style="color: var(--slate); font-size: 12.5px; margin-bottom: 8px;">Select exactly {{ q.marks }} correct answers.</p>
+                                    {% for opt_label, opt_text in q.options %}
+                                    <label class="option-row">
+                                        <input type="checkbox" name="q_{{ q.id }}" value="{{ opt_label }}" data-qid="{{ q.id }}" onchange="enforceCheckboxLimit({{ q.id }}, {{ q.marks }}, this)">
+                                        {{ opt_label }}. {{ opt_text }}
+                                    </label>
+                                    {% endfor %}
+
+                                {% elif sec.type == "match" %}
+                                    <table class="match-table">
+                                        {% for left_item in q.left_items %}
+                                        <tr>
+                                            <td style="width:45%; font-weight:600;">{{ left_item }}</td>
+                                            <td>
+                                                <select name="match_{{ q.id }}_{{ loop.index0 }}" data-qid="{{ q.id }}" onchange="checkMatchAnswered({{ q.id }}, {{ q.left_items|length }})">
+                                                    <option value="">-- Select match --</option>
+                                                    {% for opt in q.right_options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </table>
+
+                                {% elif sec.type == "coding" %}
+                                    <textarea class="coding-textarea" name="code_{{ q.id }}" data-qid="{{ q.id }}" placeholder="Write your code here..." oninput="markAnswered({{ q.id }})"></textarea>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+                    {% endfor %}
+
+                    <!-- GLOBAL Previous / Next / Submit bar - HAMESHA dikhta
+                         hai (kisi slide ke andar nahi hai), JS isi ko
+                         current question ke hisab se update karta hai. -->
+                    <div class="slide-nav-buttons">
+                        <button type="button" class="btn btn-outline" id="prev-btn" onclick="prevQuestion()">← Previous</button>
+                        <button type="button" class="btn btn-gold" id="next-btn" onclick="nextQuestion()">Next →</button>
+                        <button type="submit" class="btn btn-gold" id="submit-btn-global" style="display:none;">Submit Exam</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Har question ka (section, question-id) FLAT ORDER me JS ko
+         bhej rahe hai - <script> tags ko loop ke andar rakha hai taaki
+         Jinja ke andar comma-separated JSON array banane ki jhanjhat
+         na ho (Python side me koi change nahi karna pada). -->
+    <script>
+        const FLAT_QUESTIONS = [];
+    </script>
+    {% for sec in sections %}
+        {% for q in sec.questions %}
+            <script>FLAT_QUESTIONS.push({section: "{{ sec.key }}", qid: {{ q.id }}});</script>
+        {% endfor %}
+    {% endfor %}
+
+    <script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Settings - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>Exam Settings</h1></div>
+        {% include "admin_nav.html" %}
+
+        {% if saved %}<div class="success-msg">Settings saved. Students will now receive this exam.</div>{% endif %}
+
+        {% if subject_chapters|length == 0 %}
+            <p style="color: var(--slate);">First add questions for at least one subject/chapter in the "Questions" section, then you can activate it here.</p>
+        {% else %}
+        <form action="{{ url_for('admin_settings') }}" method="POST">
+            <div class="form-group">
+                <label>Active Subject + Chapter</label>
+                <select id="combo-select" onchange="fillHiddenFields()">
+                    <option value="">-- Select --</option>
+                    {% for sc in subject_chapters %}
+                        <option value="{{ sc.subject }}||{{ sc.chapter }}"
+                            {% if current_settings and current_settings.active_subject == sc.subject and current_settings.active_chapter == sc.chapter %}selected{% endif %}>
+                            {{ sc.subject }} — {{ sc.chapter }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="active_subject" id="hidden-subject" value="{{ current_settings.active_subject if current_settings else '' }}">
+            <input type="hidden" name="active_chapter" id="hidden-chapter" value="{{ current_settings.active_chapter if current_settings else '' }}">
+            <div class="form-group">
+                <label>Exam Duration (minutes)</label>
+                <input type="text" name="duration_minutes" value="{{ current_settings.duration_minutes if current_settings else 90 }}">
+            </div>
+            <button type="submit" class="btn btn-gold">Save Settings</button>
+        </form>
+        {% endif %}
+    </div>
+    <script>
+        function fillHiddenFields() {
+            const select = document.getElementById("combo-select");
+            const value = select.value;
+            if (value) {
+                const parts = value.split("||");
+                document.getElementById("hidden-subject").value = parts[0];
+                document.getElementById("hidden-chapter").value = parts[1];
+            }
+        }
+    </script>
+</body>
+</html>

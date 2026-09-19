@@ -1,0 +1,5 @@
+section_key,subject,chapter,question_text,option_a,option_b,option_c,option_d,option_e,correct_options
+Q1,Information Technology (IT) Exam,Practice Test 1,Which of these is a valid image file format?,.docx,.jpg,.exe,.mp3,,B
+Q2,Information Technology (IT) Exam,Practice Test 1,Which TWO of these are Cloud Storage services? (Select 2),Google Drive,MS Paint,Dropbox,VLC Player,,"A,C"
+Q3,Information Technology (IT) Exam,Practice Test 1,Which THREE of these are types of computer networks? (Select 3),LAN,WAN,MAN,USB,RAM,"A,B,C"
+Q4,Information Technology (IT) Exam,Practice Test 1,A gigabyte is bigger than a megabyte.,,,,,,TRUE

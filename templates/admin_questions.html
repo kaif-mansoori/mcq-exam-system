@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Bank - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>Question Bank</h1></div>
+        {% include "admin_nav.html" %}
+
+        <a href="{{ url_for('admin_add_question') }}" class="btn btn-gold" style="display:inline-block; width:auto; margin-bottom: 15px;">+ Add New Question</a>
+
+        <div class="filter-bar">
+            <form method="GET" action="{{ url_for('admin_questions') }}" style="display:inline;">
+                <label>Filter by Section: </label>
+                <select name="section" onchange="this.form.submit()">
+                    <option value="">-- All Sections --</option>
+                    {% for s in sections %}
+                        <option value="{{ s.section_key }}" {% if s.section_key == filter_section %}selected{% endif %}>{{ s.section_key }} - {{ s.title }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        {% if questions|length == 0 %}
+            <p style="color: var(--slate);">No questions yet in this section.</p>
+        {% else %}
+        <table class="data-table">
+            <thead>
+                <tr><th>#</th><th>Section</th><th>Type</th><th>Question</th><th>Marks</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr>
+                    <td>{{ q.id }}</td>
+                    <td>{{ q.section_key }}</td>
+                    <td>{{ q.question_type }}</td>
+                    <td>{{ q.question_text[:60] }}{% if q.question_text|length > 60 %}...{% endif %}</td>
+                    <td>{{ q.marks }}</td>
+                    <td>
+                        <a href="{{ url_for('admin_edit_question', question_id=q.id) }}" class="btn-small btn-edit">Edit</a>
+                        <form action="{{ url_for('admin_delete_question', question_id=q.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this question permanently?');">
+                            <button type="submit" class="btn-small btn-delete">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</body>
+</html>

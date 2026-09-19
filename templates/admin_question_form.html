@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "Edit" if edit else "Add" }} Question - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>{{ "Edit Question" if edit else "Add New Question" }}</h1></div>
+        {% include "admin_nav.html" %}
+        {% if error %}<div class="error-msg">{{ error }}</div>{% endif %}
+
+        <form action="{{ url_for('admin_edit_question', question_id=question.id) if edit else url_for('admin_add_question') }}" method="POST">
+
+            {% if edit %}
+                <div class="form-group">
+                    <label>Section</label>
+                    <input type="text" value="{{ question.section_key }} - {{ section.title }}" disabled style="background:#eee;">
+                    <p style="color: var(--slate); font-size: 12px; margin-top:4px;">Section/type can't be changed after creation. Delete and re-add if needed.</p>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label>Section</label>
+                    <select name="section_key" id="section_key" required onchange="showSectionFields()">
+                        <option value="">-- Choose a section --</option>
+                        {% for s in sections %}
+                            <option value="{{ s.section_key }}" data-type="{{ s.question_type }}"
+                                {% if form_data and form_data.section_key == s.section_key %}selected{% endif %}>
+                                {{ s.section_key }} - {{ s.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" required value="{{ question.subject if edit else (form_data.subject if form_data else 'Information Technology (IT) Exam') }}">
+            </div>
+            <div class="form-group">
+                <label>Chapter</label>
+                <input type="text" name="chapter" required value="{{ question.chapter if edit else (form_data.chapter if form_data else 'Practice Test 1') }}">
+            </div>
+            <div class="form-group">
+                <label>Question / Instructions</label>
+                <textarea name="question_text" rows="2" required placeholder="Type the question here...">{{ question.question_text if edit else (form_data.question_text if form_data else '') }}</textarea>
+            </div>
+
+            <!-- ================= MCQ FIELDS (single_select / multi_select) ================= -->
+            <div class="section-type-group {% if edit and section.question_type in ['single_select','multi_select'] %}visible{% endif %}" id="group-mcq">
+                <p style="color: var(--slate); font-size: 12.5px; margin-bottom:10px;">
+                    Fill Options A-D always. Option E is only used for 3-correct-answer sections (5 options).
+                    Then tick the checkbox(es) next to the CORRECT answer(s).
+                </p>
+                {% for label in ['A','B','C','D','E'] %}
+                <div class="form-group" style="display:flex; gap:10px; align-items:center;">
+                    <input type="checkbox" name="correct_options" value="{{ label }}" style="width:18px;height:18px;"
+                        {% if edit and question.correct_options and label in question.correct_options.split(",") %}checked{% endif %}>
+                    <input type="text" name="option_{{ label|lower }}" placeholder="Option {{ label }}"
+                        value="{{ question['option_' + label|lower] if edit else '' }}" style="flex:1; padding:10px; border:1px solid var(--line); border-radius:4px;">
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ================= TRUE/FALSE FIELDS ================= -->
+            <div class="section-type-group {% if edit and section.question_type == 'true_false' %}visible{% endif %}" id="group-tf">
+                <div class="form-group">
+                    <label>Correct Answer</label>
+                    <label class="option-row"><input type="radio" name="tf_correct" value="TRUE" {% if edit and question.correct_options == 'TRUE' %}checked{% endif %}> True</label>
+                    <label class="option-row"><input type="radio" name="tf_correct" value="FALSE" {% if edit and question.correct_options == 'FALSE' %}checked{% endif %}> False</label>
+                </div>
+            </div>
+
+            <!-- ================= MATCH THE FOLLOWING FIELDS ================= -->
+            <div class="section-type-group {% if edit and section.question_type == 'match' %}visible{% endif %}" id="group-match">
+                <p style="color: var(--slate); font-size: 12.5px; margin-bottom:10px;">Fill at least 2 pairs. Leave a row blank to skip it.</p>
+                {% set existing_pairs = existing_pairs if edit else [] %}
+                {% for i in range(6) %}
+                <div class="pair-row">
+                    <input type="text" name="match_left" placeholder="Left item" value="{{ existing_pairs[i].left if i < existing_pairs|length else '' }}">
+                    <input type="text" name="match_right" placeholder="Correct match (right)" value="{{ existing_pairs[i].right if i < existing_pairs|length else '' }}">
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ================= CODING FIELDS ================= -->
+            <div class="section-type-group {% if edit and section.question_type == 'coding' %}visible{% endif %}" id="group-coding">
+                <div class="form-group">
+                    <label>Maximum Marks (you will grade this manually later)</label>
+                    <input type="number" name="coding_marks" min="1" max="20" value="{{ question.marks if edit else 5 }}">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="margin-top:10px;">{{ "Update Question" if edit else "Save Question" }}</button>
+        </form>
+    </div>
+
+    <script>
+        function showSectionFields() {
+            const select = document.getElementById("section_key");
+            if (!select) return;
+            const selectedOption = select.options[select.selectedIndex];
+            const type = selectedOption ? selectedOption.getAttribute("data-type") : null;
+
+            document.querySelectorAll(".section-type-group").forEach(g => g.classList.remove("visible"));
+
+            if (type === "single_select" || type === "multi_select") {
+                document.getElementById("group-mcq").classList.add("visible");
+            } else if (type === "true_false") {
+                document.getElementById("group-tf").classList.add("visible");
+            } else if (type === "match") {
+                document.getElementById("group-match").classList.add("visible");
+            } else if (type === "coding") {
+                document.getElementById("group-coding").classList.add("visible");
+            }
+        }
+        // Page load hote hi bhi ek baar chala do (agar validation-fail
+        // ke baad form dubara dikha hai to pehle se selected section ho sakta hai)
+        showSectionFields();
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade {{ student.name }} - Bright Education</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header"><h1>Grading: {{ student.name }} ({{ student.roll_no }})</h1></div>
+        {% include "admin_nav.html" %}
+
+        <p style="color: var(--slate); font-size: 13px; margin-bottom:16px;">
+            Read each answer below and enter the marks you want to give (out of the maximum shown).
+            Auto-graded marks (Q1-Q5) so far: <strong>{{ student.obtained_marks }}</strong> out of {{ student.total_marks }} total.
+        </p>
+
+        <form method="POST">
+            {% if coding_answers|length == 0 %}
+                <p style="color: var(--slate);">This student did not attempt any coding questions.</p>
+            {% endif %}
+
+            {% for ans in coding_answers %}
+            <div class="question-card">
+                <div class="question-number">Q6 &nbsp;·&nbsp; Max {{ ans.max_marks }} marks</div>
+                <div class="question-text">{{ ans.question_text }}</div>
+                <p style="font-weight:600; font-size:12.5px; color: var(--slate); margin-bottom:6px;">Student's Answer:</p>
+                <pre style="background:#fff; border:1px solid var(--line); border-radius:4px; padding:12px; font-family: var(--font-mono); font-size:13px; white-space: pre-wrap; margin-bottom:12px;">{{ ans.answer_text if ans.answer_text else "(No answer submitted)" }}</pre>
+                <div class="form-group" style="max-width:200px;">
+                    <label>Marks to give (0 - {{ ans.max_marks }})</label>
+                    <input type="number" name="marks_{{ ans.answer_id }}" min="0" max="{{ ans.max_marks }}" value="0" required>
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-gold">Save Marks &amp; Finalize Result</button>
+        </form>
+    </div>
+</body>
+</html>
