@@ -1,5 +1,4 @@
 __pycache__/
 *.pyc
 venv/
-database/mcq_exam.db
 .vscode/
